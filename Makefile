@@ -11,7 +11,7 @@ OBJS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
 all: clean compile run
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	gcc -c $< -o $@
+	gcc -c $< -I$(HDRDIR) -o $@
 
 $(PROGRAM): $(OBJS)
 	gcc $^ -o $@
