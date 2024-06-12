@@ -6,7 +6,7 @@
 typedef struct {
   void*   ptr;
   int     size;
-  int     _size;  // real_size
+  int     offset;
 }chunk_t;
 
 chunk_t*  chk_create();

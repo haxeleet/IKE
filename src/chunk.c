@@ -21,13 +21,16 @@ void _chk_write(chunk_t* chk, void* data, int size, bool reverse)
 {
 	if(size > 0) {
 		int new_size = chk->size + size;
-		if(chk->_size < new_size) {
-			chk->ptr = realloc(chk->ptr, new_size); 
-			chk->_size = new_size;
+		if(chk->offset < size)
+			chk->ptr = realloc(chk->ptr, chk->size + (size - chk->offset));
+
+		if(chk->offset != 0) {
+			memmove(chk->ptr, chk->ptr + chk->offset, chk->size);
+			chk->offset = 0;
 		}
 
+		char* d = chk->ptr + chk->offset + chk->size;
 		if(reverse) {
-			char* d = chk->ptr + chk->size;
 			char* s = data + size - 1;
 			for(int i = 0; i < size; i++) {
 				*d = *s;
@@ -35,7 +38,7 @@ void _chk_write(chunk_t* chk, void* data, int size, bool reverse)
 				s--;
 			}
 		} else {
-			memcpy(chk->ptr + chk->size, data, size);
+			memcpy(d, data, size);
 		}
 
 		chk->size = new_size;
@@ -48,18 +51,20 @@ void* _chk_read(chunk_t* chk, int size, bool reverse)
 	if(size > 0) {
 		size = (size > chk->size)? chk->size: size;
 		dest = calloc(1, size);
+
+		char* d = dest;
 		if(reverse) {
-			char* d = dest;
-			char* s = chk->ptr + chk->size - 1;
+			char* s = chk->ptr + chk->offset + size - 1;
 			for(int i = 0; i < size; i++) {
 				*d = *s;
 				d++;
 				s--;
 			}
 		} else {
-			memcpy(dest, chk->ptr + chk->size - size, size);
+			memcpy(d, chk->ptr + chk->offset, size);
 		}
 
+		chk->offset = chk->offset + size;
 		chk->size = chk->size - size;
 	}
 
