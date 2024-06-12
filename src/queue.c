@@ -4,12 +4,12 @@
 
 typedef struct _node_t _node_t;
 struct _node_t {
-	chunk_t*	ptr;
+	void*			ptr;
 	_node_t*	prev;
 	_node_t*	next;
 };
 
-_node_t*	_node_create(chunk_t* data);
+_node_t*	_node_create(void* data);
 void			_node_free(_node_t** node);
 
 queue_t* que_create()
@@ -22,7 +22,7 @@ queue_t* que_create()
 	return que;
 }
 
-_node_t* _node_create(chunk_t* data)
+_node_t* _node_create(void* data)
 {
 	_node_t* node = calloc(1, sizeof(_node_t));
 	node->ptr = data;
@@ -48,7 +48,7 @@ void _node_free(_node_t** node)
 	free(*node);
 }
 
-void enqueue(queue_t* que, chunk_t* data)
+void enqueue(queue_t* que, void* data)
 {
 	_node_t* node = _node_create(data);
 
@@ -65,9 +65,9 @@ void enqueue(queue_t* que, chunk_t* data)
 	pthread_mutex_unlock(que->mutex);
 }
 
-chunk_t* dequeue(queue_t* que)
+void* dequeue(queue_t* que)
 {
-	chunk_t* data = NULL;
+	void* data = NULL;
 
 	pthread_mutex_lock(que->mutex);
 	pthread_cond_wait(que->cond, que->mutex);
