@@ -70,3 +70,8 @@ void* _chk_read(chunk_t* chk, int size, bool reverse)
 
 	return dest;
 }
+
+void _chk_merge(chunk_t* dst, chunk_t* src, bool reverse)
+{
+	_chk_write(dst, src->ptr, src->size, reverse);
+}
