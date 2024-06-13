@@ -12,7 +12,8 @@ typedef struct {
 }queue_t;
 
 queue_t*  que_create();
-void      que_free(queue_t** que);
+// Free at Caller
+//void      que_free(queue_t** que);
 void      enqueue(queue_t* que, void* data);
 void*     dequeue(queue_t* que);
 

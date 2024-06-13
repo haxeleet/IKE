@@ -10,7 +10,6 @@ struct _node_t {
 };
 
 _node_t*	_node_create(void* data);
-void			_node_free(_node_t** node);
 
 queue_t* que_create()
 {
@@ -28,24 +27,6 @@ _node_t* _node_create(void* data)
 	node->ptr = data;
 
 	return node;
-}
-
-void que_free(queue_t** que)
-{
-	_node_t* node = (*que)->rear;
-	_node_t* pre;
-	while(node != NULL) {
-		pre = node->prev;
-		_node_free(&node);
-		node = pre;
-	}
-}
-
-void _node_free(_node_t** node)
-{
-	if((*node)->ptr)
-		chk_free(&((*node)->ptr));
-	free(*node);
 }
 
 void enqueue(queue_t* que, void* data)
