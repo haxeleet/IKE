@@ -1,5 +1,10 @@
 #include "network.h"
 #include <stdlib.h>
+#include <stdio.h>
+
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <pthread.h>
 
 typedef struct {
 	chunk_t*	data;
@@ -8,7 +13,9 @@ typedef struct {
 }_packet_t;
 
 _packet_t*	_pkt_create();
-void				_pkt_free(_packet_t** pkt);
+void				_pkt_free(_packet_t* pkt);
+void*				_receiving(void* arg);
+void*				_sending(void* arg);
 
 network_t* net_create()
 {
@@ -16,14 +23,28 @@ network_t* net_create()
 	net->q_send = que_create();
 	net->q_recv = que_create();
 
+	net->port = 500;
+	net->src = htonl(INADDR_ANY);
+
+	net->sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if(net->sock < 0) {
+		return NULL;
+	}
+
 	return net;
 }
 
-void net_free(network_t** net)
+void net_free(network_t* net)
 {
-	que_free(&((*net)->q_send));
-	que_free(&((*net)->q_recv));
-	free(*net);
+	_packet_t* d;
+	for(d = dequeue(net->q_send); d != NULL; d = dequeue(net->q_send))
+		_pkt_free(d);
+	for(d = dequeue(net->q_recv); d != NULL; d = dequeue(net->q_recv))
+		_pkt_free(d);
+
+	free(net->q_send);
+	free(net->q_recv);
+	free(net);
 }
 
 _packet_t* _pkt_create()
@@ -33,19 +54,19 @@ _packet_t* _pkt_create()
 	return pkt;
 }
 
-void _pkt_free(_packet_t** pkt)
+void _pkt_free(_packet_t* pkt)
 {
-	if((*pkt)->data)
-		chk_free(&((*pkt)->data));
-	free(*pkt);
+	if(pkt->data)
+		chk_free(pkt->data);
+	free(pkt);
 }
 
 void net_send(network_t* net, chunk_t* data, ip4_addr dst)
 {
 	_packet_t* pkt = _pkt_create();
 	pkt->data = data;
-	pkt->dst = dst;
 	pkt->src = net->src;
+	pkt->dst = dst;
 
 	enqueue(net->q_send, pkt);
 }
@@ -53,11 +74,64 @@ void net_send(network_t* net, chunk_t* data, ip4_addr dst)
 chunk_t* net_recv(network_t* net, ip4_addr* src)
 {
 	_packet_t* pkt = dequeue(net->q_recv);
-	chunk_t* data = pkt->data;
+	chunk_t* chk = pkt->data;
+
 	*src = pkt->src;
 
-	pkt->data = NULL;
-	_pkt_free(&pkt);
+	return chk;
+}
 
-	return data;
+void* _receiving(void* arg)
+{
+	network_t* net = arg;
+	struct sockaddr_in addr, client;
+	unsigned int client_len = sizeof(client);
+	int recv_len;
+	char buf[1024];
+
+	addr.sin_family = AF_INET;
+	addr.sin_port = net->port;
+	addr.sin_addr.s_addr = net->src;
+
+	if(bind(net->sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+		return NULL;
+	}
+
+	while(1) {
+		recv_len = recvfrom(net->sock, buf, 1024, 0, (struct sockaddr*)&client, &client_len);
+		if(recv_len) {
+			_packet_t* pkt = _pkt_create();
+			pkt->data = chk_create();
+			chk_write(pkt->data, buf, recv_len);
+			pkt->src = client.sin_addr.s_addr;
+			pkt->dst = net->src;
+			enqueue(net->q_recv, pkt);
+		}
+	}
+}
+
+void* _sending(void* arg)
+{
+	network_t* net = arg;
+	struct sockaddr_in addr;
+	int recv_len;
+	char buf[1024];
+
+	addr.sin_family = AF_INET;
+	addr.sin_port = net->port;
+
+	while(1) {
+		_packet_t* pkt = dequeue(net->q_send);
+		addr.sin_addr.s_addr = pkt->dst;
+
+		sendto(net->sock, pkt->data->ptr, pkt->data->size, 0, (struct sockaddr*)&addr, sizeof(addr));
+		_pkt_free(pkt);
+	}
+}
+
+void net_running(network_t* net)
+{
+	pthread_t tid;
+	pthread_create(&tid, NULL, _sending, net);
+	pthread_create(&tid, NULL, _receiving, net);
 }
