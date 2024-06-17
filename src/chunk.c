@@ -11,10 +11,10 @@ chunk_t* chk_create()
 	return chk;
 }
 
-void chk_free(chunk_t** chk)
+void chk_free(chunk_t* chk)
 {
-	free((*chk)->ptr);
-	free(*chk);
+	free(chk->ptr);
+	free(chk);
 }
 
 void _chk_write(chunk_t* chk, void* data, int size, bool reverse)

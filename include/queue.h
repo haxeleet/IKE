@@ -7,8 +7,8 @@ typedef struct {
   void*   front;
   void*   rear;
 
-  pthread_mutex_t*  mutex;
-  pthread_cond_t*   cond;
+  pthread_mutex_t  mutex;
+  pthread_cond_t   cond;
 }queue_t;
 
 queue_t*  que_create();

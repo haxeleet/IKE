@@ -10,7 +10,7 @@ typedef struct {
 }chunk_t;
 
 chunk_t*  chk_create();
-void      chk_free(chunk_t** chk);
+void      chk_free(chunk_t* chk);
 
 void      _chk_write(chunk_t* chk, void* data, int size, bool reverse);
 #define   chk_write(chk, data, size) _chk_write(chk, data, size, false)
