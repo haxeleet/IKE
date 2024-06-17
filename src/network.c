@@ -1,6 +1,7 @@
 #include "network.h"
+#include "log.h"
+
 #include <stdlib.h>
-#include <stdio.h>
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -28,8 +29,10 @@ network_t* net_create()
 
 	net->sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if(net->sock < 0) {
+		logging(ERR, "[NET] Failure create socket\n");
 		return NULL;
 	}
+	logging(ALL, "[NET] Create Socket\n");
 
 	return net;
 }
@@ -94,12 +97,14 @@ void* _receiving(void* arg)
 	addr.sin_addr.s_addr = net->src;
 
 	if(bind(net->sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+		logging(ERR, "[NET] Failure bind socket\n");
 		return NULL;
 	}
 
 	while(1) {
 		recv_len = recvfrom(net->sock, buf, 1024, 0, (struct sockaddr*)&client, &client_len);
 		if(recv_len) {
+			logging(DBG, "[NET] Receive %d-byte packet\n", recv_len);
 			_packet_t* pkt = _pkt_create();
 			pkt->data = chk_create();
 			chk_write(pkt->data, buf, recv_len);
@@ -125,6 +130,7 @@ void* _sending(void* arg)
 		addr.sin_addr.s_addr = pkt->dst;
 
 		sendto(net->sock, pkt->data->ptr, pkt->data->size, 0, (struct sockaddr*)&addr, sizeof(addr));
+		logging(DBG, "[NET] Send %d-byte packet\n", pkt->data->size);
 		_pkt_free(pkt);
 	}
 }
@@ -133,5 +139,7 @@ void net_running(network_t* net)
 {
 	pthread_t tid;
 	pthread_create(&tid, NULL, _sending, net);
+	logging(ALL, "[NET] Start Sending\n");
 	pthread_create(&tid, NULL, _receiving, net);
+	logging(ALL, "[NET] Start Receiving\n");
 }
