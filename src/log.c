@@ -20,7 +20,7 @@ void log_free(log_t* log)
 
 void logging(log_level_t lev, const char* fmt, ...)
 {
-	if(daemon->log->level <= lev) {
+	if(daemon.log->level <= lev) {
 		va_list args;
 		va_start(args, fmt);
 		vprintf(fmt, args);
