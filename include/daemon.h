@@ -9,7 +9,7 @@ typedef struct {
   network_t*  net;
 }daemon_t;
 
-extern daemon_t daemon;
+extern daemon_t IKE;
 
 void daemon_create();
 

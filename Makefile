@@ -13,7 +13,7 @@ CFLAGS = -Wall -Wextra
 ifeq ($(shell id -u), 0)
 all: clean run
 else
-all: clean compile run
+all: clean compile
 endif
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c

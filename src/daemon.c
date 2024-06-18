@@ -1,9 +1,9 @@
 #include "daemon.h"
 
-daemon_t daemon;
+daemon_t IKE;
 
 void daemon_create()
 {
-	daemon.log = log_create();
-	daemon.net = net_create();
+	IKE.log = log_create();
+	IKE.net = net_create();
 }
