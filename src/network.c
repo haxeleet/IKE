@@ -20,11 +20,11 @@ void*				_sending(void* arg);
 
 network_t* net_create()
 {
-	network_t* net = calloc(1, sizeof(network_t*));
+	network_t* net = calloc(1, sizeof(network_t));
 	net->q_send = que_create();
 	net->q_recv = que_create();
 
-	net->port = 500;
+	net->port = htons(500);
 	net->src = htonl(INADDR_ANY);
 
 	net->sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -119,8 +119,6 @@ void* _sending(void* arg)
 {
 	network_t* net = arg;
 	struct sockaddr_in addr;
-	int recv_len;
-	char buf[1024];
 
 	addr.sin_family = AF_INET;
 	addr.sin_port = net->port;
