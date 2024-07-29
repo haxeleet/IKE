@@ -2,6 +2,7 @@
 #include "log.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -140,4 +141,16 @@ void net_running(network_t* net)
 	logging(ALL, "[NET] Start Sending\n");
 	pthread_create(&tid, NULL, _receiving, net);
 	logging(ALL, "[NET] Start Receiving\n");
+}
+
+ip4_addr net_stoa(const char* ipstr)
+{
+	uint32_t a,b,c,d;
+
+	if(sscanf(ipstr, "%u.%u.%u.%u", &a, &b, &c, &d) == 4) {
+		ip4_addr result = d + (c<<8) + (b<<16) + (a<<24);
+		return result;
+	}
+
+	return 0;
 }

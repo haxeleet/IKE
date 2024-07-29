@@ -23,4 +23,6 @@ chunk_t*    net_recv(network_t* net, ip4_addr* src);
 
 void        net_running(network_t* net);
 
+ip4_addr    net_stoa(const char* ipstr);
+
 #endif //__NETWORK_H__
