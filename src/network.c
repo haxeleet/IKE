@@ -19,14 +19,14 @@ void				_pkt_free(_packet_t* pkt);
 void*				_receiving(void* arg);
 void*				_sending(void* arg);
 
-network_t* net_create()
+network_t* net_create(ip4_addr src)
 {
 	network_t* net = calloc(1, sizeof(network_t));
 	net->q_send = que_create();
 	net->q_recv = que_create();
 
 	net->port = htons(500);
-	net->src = htonl(INADDR_ANY);
+	net->src = htonl(src);
 
 	net->sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if(net->sock < 0) {
